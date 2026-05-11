@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>尊孔独中董事会认人小游戏</title>
+    <style>
+        :root {
+            --primary-color: #800000; /* 尊孔校色调 - 枣红/深红 */
+            --accent-color: #f1c40f;
+            --bg-color: #f8f9fa;
+        }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 { color: var(--primary-color); margin-bottom: 5px; }
+        .subtitle { color: #666; margin-bottom: 25px; font-size: 0.9em; }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            background: #fff9e6;
+            padding: 10px 20px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            border: 1px solid #ffeeba;
+        }
+
+        .target-card {
+            background: linear-gradient(135deg, #800000 0%, #a52a2a 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(128, 0, 0, 0.2);
+        }
+        .target-card p { margin: 8px 0; font-size: 1.1em; }
+        .target-card .highlight {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .option-box {
+            position: relative;
+            cursor: pointer;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 4px solid #eee;
+            transition: all 0.3s ease;
+            height: 250px;
+        }
+        .option-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .option-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .option-box.correct { border-color: #28a745; }
+        .option-box.wrong { border-color: #dc3545; opacity: 0.7; }
+
+        #message {
+            margin-top: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            min-height: 1.5em;
+        }
+        .btn {
+            margin-top: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            display: none;
+        }
+        .btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎯 认人挑战赛</h1>
+    <div class="subtitle">尊孔独立中学 2024-2026年度董事会</div>
+
+    <div class="score-board">
+        <span>进度: <span id="round-num">1</span> / 10</span>
+        <span>得分: <span id="score-num">0</span></span>
+    </div>
+
+    <div class="target-card">
+        <p>请找出这位董事：</p>
+        <p>姓名：<span id="t-name" class="highlight"></span></p>
+        <p>职位：<span id="t-pos"></span></p>
+        <p>代表：<span id="t-group"></span></p>
+    </div>
+
+    <div class="image-grid" id="grid"></div>
+
+    <div id="message"></div>
+    <button class="btn" id="next-btn" onclick="initRound()">下一题 ➡️</button>
+</div>
+
+<script>
+    // 完整名单资料
+    const rawData = [
+        { n: "沈德和", p: "董事长", g: "个人董事" },
+        { n: "侯渊富", p: "署理董事长", g: "个人董事" },
+        { n: "叶顺志", p: "副董事长", g: "个人董事" },
+        { n: "拿督王发", p: "副董事长", g: "个人董事" },
+        { n: "黄荣庆", p: "副董事长", g: "个人董事" },
+        { n: "拿督杨括添", p: "副董事长", g: "个人董事" },
+        { n: "詹美云", p: "副董事长", g: "雪隆尊孔学校校友会" },
+        { n: "拿督罗文森", p: "副董事长", g: "尊孔独中家教协会" },
+        { n: "叶少华", p: "总务", g: "个人董事" },
+        { n: "陈长洲", p: "副总务", g: "个人董事" },
+        { n: "蓝裕和", p: "副总务", g: "个人董事" },
+        { n: "陈正锦", p: "财政", g: "个人董事" },
+        { n: "龚铭恩", p: "副财政", g: "个人董事" },
+        { n: "黄金水", p: "联络主任", g: "个人董事" },
+        { n: "李庆进", p: "副联络主任", g: "个人董事" },
+        { n: "陈加仁", p: "常务董事", g: "个人董事" },
+        { n: "林美莲", p: "常务董事", g: "个人董事" },
+        { n: "邓宏智", p: "董事", g: "雪隆广西会馆" },
+        { n: "吴利传", p: "董事", g: "雪隆茶阳（大埔）回春馆" },
+        { n: "杨碧玉", p: "董事", g: "雪隆潮州会馆" },
+        { n: "黄成就", p: "董事", g: "旧吧生路快乐花园关帝威灵庙" },
+        { n: "拿督章守业", p: "董事", g: "吉隆坡卫理公会福建堂" },
+        { n: "李侑铭", p: "董事", g: "雪隆福州会馆" },
+        { n: "林勇忠", p: "董事", g: "雪隆广东会馆" },
+        { n: "锺鉴辉", p: "董事", g: "雪隆嘉应会馆" },
+        { n: "拿督王明威律师", p: "董事", g: "雪隆精武体育会" },
+        { n: "黄兴隆", p: "董事", g: "吉隆坡暨雪兰莪河婆同乡会" },
+        { n: "陈开府", p: "董事", g: "雪隆海南会馆" },
+        { n: "郭炜勇", p: "董事", g: "雪隆茶阳（大埔）会馆" },
+        { n: "詹美云", p: "董事", g: "雪隆尊孔学校校友会" },
+        { n: "郑天辉", p: "董事", g: "东美布庄有限公司" },
+        { n: "李英维", p: "董事", g: "雪兰莪暨联邦直辖区中山同乡会" },
+        { n: "叶志行", p: "董事", g: "雪隆叶氏宗祠" },
+        { n: "黄公龙", p: "董事", g: "瑞泰企业有限公司" },
+        { n: "傅丽玲", p: "董事", g: "尊孔独中家教协会" }
+    ];
+
+    let score = 0;
+    let round = 0;
+    let currentTarget = null;
+    let isAnswered = false;
+
+    function initRound() {
+        if (round >= 10) {
+            alert(`游戏结束！您的总分是 ${score} 分。`);
+            location.reload();
+            return;
+        }
+        
+        isAnswered = false;
+        round++;
+        document.getElementById('round-num').innerText = round;
+        document.getElementById('message').innerText = "";
+        document.getElementById('next-btn').style.display = "none";
+
+        // 随机选4个，并设其中一个是目标
+        const shuffled = [...rawData].sort(() => 0.5 - Math.random());
+        const options = shuffled.slice(0, 4);
+        currentTarget = options[Math.floor(Math.random() * 4)];
+
+        // 更新题目
+        document.getElementById('t-name').innerText = currentTarget.n;
+        document.getElementById('t-pos').innerText = currentTarget.p;
+        document.getElementById('t-group').innerText = currentTarget.g;
+
+        // 生成图片选项
+        const grid = document.getElementById('grid');
+        grid.innerHTML = "";
+        options.forEach(item => {
+            const box = document.createElement('div');
+            box.className = 'option-box';
+            const img = document.createElement('img');
+            // 路径对应 images 文件夹下的 姓名.jpg
+            img.src = `images/${item.n}.jpg`;
+            img.onerror = () => { img.src = `https://via.placeholder.com/250x300?text=${item.n}`; };
+            
+            box.appendChild(img);
+            box.onclick = () => checkAnswer(item, box);
+            grid.appendChild(box);
+        });
+    }
+
+    function checkAnswer(selected, element) {
+        if (isAnswered) return;
+        isAnswered = true;
+
+        const msg = document.getElementById('message');
+        const boxes = document.querySelectorAll('.option-box');
+
+        if (selected.n === currentTarget.n) {
+            element.classList.add('correct');
+            msg.innerText = "✅ 答对了！太棒了！";
+            msg.style.color = "#28a745";
+            score += 10;
+            document.getElementById('score-num').innerText = score;
+        } else {
+            element.classList.add('wrong');
+            msg.innerText = `❌ 认错了，这位是${selected.n}`;
+            msg.style.color = "#dc3545";
+            
+            // 找出正确的那个显现出来
+            boxes.forEach((b, index) => {
+                // 简单的逻辑判断哪一个是正确的图片
+                if (b.querySelector('img').src.includes(encodeURIComponent(currentTarget.n))) {
+                    b.classList.add('correct');
+                }
+            });
+        }
+        document.getElementById('next-btn').style.display = "inline-block";
+    }
+
+    window.onload = initRound;
+</script>
+
+</body>
+</html>
