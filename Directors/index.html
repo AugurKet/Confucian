@@ -10,11 +10,12 @@
             --accent-color: #f1c40f;
             --bg-color: #f8f9fa;
         }
+        box-sizing: border-box;
         body {
             font-family: "Microsoft YaHei", sans-serif;
             background-color: var(--bg-color);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             justify-content: center;
         }
@@ -26,15 +27,16 @@
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             text-align: center;
+            box-sizing: border-box;
         }
-        h1 { color: var(--primary-color); margin-bottom: 5px; font-size: 1.8em; }
-        .subtitle { color: #666; margin-bottom: 20px; font-size: 0.9em; }
+        h1 { color: var(--primary-color); margin-bottom: 5px; font-size: 1.6em; }
+        .subtitle { color: #666; margin-bottom: 20px; font-size: 0.85em; }
         
         .score-board {
             display: flex;
             justify-content: space-between;
             background: #fff9e6;
-            padding: 10px 20px;
+            padding: 10px 15px;
             border-radius: 50px;
             margin-bottom: 20px;
             font-weight: bold;
@@ -61,7 +63,7 @@
         .image-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            gap: 12px;
         }
         .option-box {
             position: relative;
@@ -75,7 +77,7 @@
             height: auto;
         }
         .option-box:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         .option-box img {
@@ -88,7 +90,7 @@
 
         #message {
             margin-top: 15px;
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: bold;
             min-height: 1.5em;
         }
@@ -97,41 +99,58 @@
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 12px 25px;
             border-radius: 8px;
-            font-size: 1.1em;
+            font-size: 1.05em;
             cursor: pointer;
             display: none;
+            width: 100%;
+            box-sizing: border-box;
         }
         .btn:hover { opacity: 0.9; }
 
-        /* 结算界面遮罩层 */
+        /* 结算界面遮罩层 - 手机端完美适配版 */
         #result-overlay {
-            display: none; /* 默认隐藏 */
+            display: none; 
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.92);
             z-index: 1000;
             color: white;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 20px;
-            text-align: center;
+            box-sizing: border-box;
         }
-        .result-content { max-width: 500px; }
-        .result-content h2 { font-size: 2.5em; color: var(--accent-color); margin-bottom: 10px; }
-        .result-score { font-size: 4em; font-weight: bold; margin: 10px 0; color: #fff; }
-        .result-text { font-size: 1.2em; line-height: 1.6; margin-bottom: 30px; color: #ddd; }
+        .result-content { 
+            max-width: 90%; 
+            width: 400px;
+            text-align: center; 
+        }
+        #result-emoji { font-size: 5em; margin-bottom: 0; }
+        .result-content h2 { font-size: 2.2em; color: var(--accent-color); margin: 10px 0; }
+        .result-score { 
+            font-size: 3.5em; 
+            font-weight: bold; 
+            margin: 10px 0; 
+            color: #fff;
+            white-space: nowrap; /* 强制在一行显示 */
+        }
+        .result-score small { font-size: 0.4em; color: #aaa; }
+        .result-text { font-size: 1.1em; line-height: 1.6; margin: 20px 0 30px; color: #ddd; padding: 0 10px; }
         .restart-btn {
             background: var(--accent-color);
-            color: #000;
-            padding: 15px 40px;
+            color: #800000;
+            padding: 14px 35px;
             font-weight: bold;
-            font-size: 1.2em;
+            font-size: 1.1em;
             border-radius: 50px;
             border: none;
             cursor: pointer;
+            width: 80%;
+            max-width: 250px;
+            box-shadow: 0 4px 10px rgba(241, 196, 15, 0.3);
         }
     </style>
 </head>
@@ -161,16 +180,15 @@
 
 <div id="result-overlay">
     <div class="result-content">
-        <div id="result-emoji" style="font-size: 6em;">🏆</div>
+        <div id="result-emoji">🏆</div>
         <h2 id="result-title">挑战结束！</h2>
-        <div class="result-score"><span id="final-score">0</span><small style="font-size: 0.4em;"> / 250</small></div>
+        <div class="result-score"><span id="final-score">0</span><small> / 100</small></div>
         <p id="result-text" class="result-text"></p>
         <button class="restart-btn" onclick="location.reload()">再战一场 🔄</button>
     </div>
 </div>
 
 <script>
-    // 完整名单资料
     const rawData = [
         { n: "沈德和", p: "董事长", g: "个人董事" },
         { n: "侯渊富", p: "署理董事长", g: "个人董事" },
@@ -224,7 +242,7 @@
 
     let score = 0;
     let round = 0;
-    const maxRounds = 25; // 挑战 25 位
+    const maxRounds = 25; 
     let currentTarget = null;
     let isAnswered = false;
 
@@ -240,22 +258,18 @@
         document.getElementById('message').innerText = "";
         document.getElementById('next-btn').style.display = "none";
         
-        // 最后一次更改按钮文字
         if(round === maxRounds) {
             document.getElementById('next-btn').innerText = "查看结算成绩 🏆";
         }
 
-        // 随机选4个，并设其中一个是目标
         const shuffled = [...rawData].sort(() => 0.5 - Math.random());
         const options = shuffled.slice(0, 4);
         currentTarget = options[Math.floor(Math.random() * 4)];
 
-        // 更新题目
         document.getElementById('t-name').innerText = currentTarget.n;
         document.getElementById('t-pos').innerText = currentTarget.p;
         document.getElementById('t-group').innerText = currentTarget.g;
 
-        // 生成图片选项
         const grid = document.getElementById('grid');
         grid.innerHTML = "";
         options.forEach(item => {
@@ -282,7 +296,7 @@
             element.classList.add('correct');
             msg.innerText = "✅ 答对了！太棒了！";
             msg.style.color = "#28a745";
-            score += 10;
+            score += 4; // 答对一题得 4 分
             document.getElementById('score-num').innerText = score;
         } else {
             element.classList.add('wrong');
@@ -298,7 +312,6 @@
         document.getElementById('next-btn').style.display = "inline-block";
     }
 
-    // 结算逻辑
     function showResults() {
         const overlay = document.getElementById('result-overlay');
         const finalScore = document.getElementById('final-score');
@@ -306,22 +319,22 @@
         const text = document.getElementById('result-text');
         const emoji = document.getElementById('result-emoji');
         
-        const percent = (score / (maxRounds * 10)) * 100;
+        // 分数本身就是百分制，直接作为 percent 判断
         finalScore.innerText = score;
         overlay.style.display = "flex";
 
-        if (percent === 100) {
+        if (score === 100) {
             emoji.innerText = "👑";
             title.innerText = "尊孔百晓生！";
             text.innerText = "太震撼了！您对董事会成员了如指掌，学校的每一份子都应该向您致敬。您就是尊孔最强大脑！";
-        } else if (percent >= 70) {
+        } else if (score >= 70) {
             emoji.innerText = "🌟";
             title.innerText = "中流砥柱！";
             text.innerText = "表现非常出色！您一定经常关注校务，董事们看到您如此熟悉他们，一定会感到非常欣慰！";
-        } else if (percent >= 50) {
+        } else if (score >= 50) {
             emoji.innerText = "📚";
             title.innerText = "再接再厉！";
-            text.innerText = "表现不错，看来您已经认识了一半以上的董事。多回校参加活动，很快就能满分了！";
+            text.innerText = "表现不错，看来您已经认识了一半以上的董事。多参加活动，很快就能满分了！";
         } else {
             emoji.innerText = "😅";
             title.innerText = "认错人了？";
@@ -334,5 +347,3 @@
 
 </body>
 </html>
-
-```
